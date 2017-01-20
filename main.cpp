@@ -1,4 +1,5 @@
-﻿#include "class_logger.h"
+﻿#define _CRT_SECURE_NO_WARNINGS
+#include "class_logger.h"
 #include "class_print_console.h"
 #include "class_print_document.h"
 #include <iostream>
@@ -16,6 +17,10 @@ int main()
 	ptr[1] = &pd;
 
 	ptr[0]->fun_print_text();
+
+	pd.set_name();
+	pd.get_name();
+
 	ptr[1]->fun_print_text();
 
 }
