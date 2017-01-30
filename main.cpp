@@ -1,61 +1,63 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+
+
 using namespace std;
 
 class LogAppender;
+class LoggerFun;
 
 class Logger
 {
 public:
-	enum LogLevel
-	{
-		LOG_LEVEL_DEFAULT = 0, LOG_LEVEL_ERROR
+	enum LogLevel{
+		LOG_LEVEL_DEFAULT = 0, 
+		LOG_LEVEL_ERROR
 	};
 
 public:
-	static Logger* getInstance() {
-		static Logger* loginst;
-		return loginst;
-	}
+	static Logger* getInstance();
 		
 public:
 	virtual bool setLogLevel(LogLevel lvl) = 0;
 	virtual bool addAppender(LogAppender *appender) = 0;
-	virtual void LogMessage(Logger::LogLevel level, const std::string &msg) = 0;
+	virtual void LogMessage(Logger::LogLevel level, const string &msg) = 0;
 };
 
-
-class LogAppender
+class LogAppender 
 {
 public:
-
-	virtual void LogMessage(Logger::LogLevel level, const std::string &msg) = 0;
+	virtual void LogMessage(Logger::LogLevel level, const string &msg) = 0;
 };
-
 
 class FileLogAppender : public LogAppender
 {
-	
-	void setFilename(string file_name)
+public:
+	ofstream file;
+
+	void setFilename(string namefile)
 	{
-		ifstream file_log(file_name);
-		file_log.close();
+		file.open(namefile,'w');
 	}
 
-	void LogMessage(Logger::LogLevel level, const std::string &msg)
+	void LogMessage(Logger::LogLevel level, const string &msg)
 	{
-		cout << msg << endl;
+		file << level << msg << endl;
+	}
+
+	~FileLogAppender()
+	{
+		file.close();
 	}
 	
 };
 
-
 class StdLogAppender : public LogAppender
 {
-	void LogMessage(Logger::LogLevel level, const std::string &msg)
+	void LogMessage(Logger::LogLevel level, const string &msg)
 	{
-		cout << msg << endl;
+		cout << level << msg << endl;
 	}
 };
 
@@ -63,34 +65,52 @@ class LoggerFun : public Logger
 {
 public:
 
-	bool setLogLevel(LogLevel lvl)
-	{
-		if (lvl == 0)
-		{
-			return LogLevel::LOG_LEVEL_DEFAULT;
-		}
-			 
-		else
-		{
-			return LogLevel::LOG_LEVEL_ERROR;
-		}
+	Logger::LogLevel m_lvl;
+	
+	LogAppender *arr_append[5] = { NULL };
+	LogAppender *ptr;
 
-	}
-
+	
+	
 	bool addAppender(LogAppender *appender)
 	{
-		if (true)
-		{
-			return 0;
-		}
-		else
-		{
-			return 1;
-		}
-
+		/*for (int i = 0; i < 4; i++)
+		{*/
+			ptr = appender;
+			arr_append[0] = ptr;
+			//cout << arr_append << endl;
+		/*}
+	*/
+		return true;
 	}
 
+	void LogMessage(Logger::LogLevel level, const string &msg)
+	{
+		
+	/*	for (int i = 0; i < 4; i++)*/
+		
+			arr_append[0]->LogMessage(level, msg);
+		
+				
+	}
+
+	bool setLogLevel(LogLevel lvl)
+	{
+		m_lvl = lvl;
+		return true;
+	}
+
+
 };
+
+
+Logger* Logger::getInstance()
+{
+	static Logger *loginst = new LoggerFun();
+
+	return loginst;
+}
+
 
 #define LOG_DEF(msg) Logger::getInstance()->LogMessage(Logger::LogLevel::LOG_LEVEL_DEFAULT, msg)
 #define LOG_ERR(msg) Logger::getInstance()->LogMessage(Logger::LogLevel::LOG_LEVEL_ERROR, msg)
@@ -100,11 +120,11 @@ int main()
 	Logger* loginst = Logger::getInstance();
 
 	FileLogAppender *fileAppender = new FileLogAppender;
-	fileAppender.setFilename("qweqwe.log");
+	fileAppender->setFilename("qweqwe.log");
 
 	loginst->addAppender(fileAppender);
 	loginst->addAppender(new StdLogAppender);
-
+	
 	loginst->setLogLevel(Logger::LogLevel::LOG_LEVEL_ERROR); // Log only if LogLevel > LOG_LEVEL_ERROR
 
 	LOG_DEF("Logger init def"); // ===>> NOTHIHNG
@@ -113,3 +133,4 @@ int main()
 
 	return 0;
 }
+
