@@ -11,21 +11,21 @@ class LoggerFun;
 class Logger
 {
 public:
-	enum LogLevel{
-		LOG_LEVEL_DEFAULT = 0, 
+	enum LogLevel {
+		LOG_LEVEL_DEFAULT = 0,
 		LOG_LEVEL_ERROR
 	};
 
 public:
 	static Logger* getInstance();
-		
+
 public:
 	virtual bool setLogLevel(LogLevel lvl) = 0;
 	virtual bool addAppender(LogAppender *appender) = 0;
 	virtual void LogMessage(Logger::LogLevel level, const string &msg) = 0;
 };
 
-class LogAppender 
+class LogAppender
 {
 public:
 	virtual void LogMessage(Logger::LogLevel level, const string &msg) = 0;
@@ -38,7 +38,7 @@ public:
 
 	void setFilename(string namefile)
 	{
-		file.open(namefile,'w');
+		file.open(namefile);
 	}
 
 	void LogMessage(Logger::LogLevel level, const string &msg)
@@ -50,7 +50,7 @@ public:
 	{
 		file.close();
 	}
-	
+
 };
 
 class StdLogAppender : public LogAppender
@@ -66,32 +66,26 @@ class LoggerFun : public Logger
 public:
 
 	Logger::LogLevel m_lvl;
-	
-	LogAppender *arr_append[5] = { NULL };
-	LogAppender *ptr;
 
-	
-	
+	LogAppender *arr_append[2] = { NULL };
+	int count = 0;
+
 	bool addAppender(LogAppender *appender)
 	{
-		/*for (int i = 0; i < 4; i++)
-		{*/
-			ptr = appender;
-			arr_append[0] = ptr;
-			//cout << arr_append << endl;
-		/*}
-	*/
+		arr_append[count] = appender;
+		count++;	
 		return true;
 	}
 
 	void LogMessage(Logger::LogLevel level, const string &msg)
 	{
+	
+		for (int i = 0; i < count; i++)
+		{
+			if (level >= m_lvl)
+				arr_append[i]->LogMessage(level, msg);
+		}
 		
-	/*	for (int i = 0; i < 4; i++)*/
-		
-			arr_append[0]->LogMessage(level, msg);
-		
-				
 	}
 
 	bool setLogLevel(LogLevel lvl)
@@ -124,13 +118,13 @@ int main()
 
 	loginst->addAppender(fileAppender);
 	loginst->addAppender(new StdLogAppender);
+
+	loginst->setLogLevel(Logger::LogLevel::LOG_LEVEL_ERROR); // Log only if LogLevel >= LOG_LEVEL_ERROR
 	
-	loginst->setLogLevel(Logger::LogLevel::LOG_LEVEL_ERROR); // Log only if LogLevel > LOG_LEVEL_ERROR
 
 	LOG_DEF("Logger init def"); // ===>> NOTHIHNG
 	LOG_ERR("Logger init successfully"); //  ====>> std:: ""Logger init successfully""
-										 // file qweqwe.log ====>>> "Logger init successfully"
+									 // file qweqwe.log ====>>> "Logger init successfully"
 
 	return 0;
 }
-
